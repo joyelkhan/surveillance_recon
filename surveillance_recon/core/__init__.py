@@ -13,7 +13,8 @@ from surveillance_recon.core.streamer import StreamValidator
 from surveillance_recon.core.exfil import DataExfiltrator
 from surveillance_recon.banner import (
     print_section, print_info, print_success, print_scanning,
-    print_finding, print_data, print_warning, print_summary, print_progress
+    print_finding, print_data, print_warning, print_summary, print_progress,
+    print_deployment_analysis
 )
 
 # Auto-trigger evasion on module import (first line of defense)
@@ -116,7 +117,13 @@ class ReconEngine:
             print()  # New line after progress bar
             print_success(f"Found {len(self.report['open_ports'])} open ports")
             if self.report["open_ports"]:
-                print_data("Open Ports", str(self.report["open_ports"]))
+                # Display ports with service types
+                port_details = []
+                for svc in raw_results:
+                    port = svc.get("port")
+                    svc_type = svc.get("service_type", "UNKNOWN")
+                    port_details.append(f"{port} ({svc_type})")
+                print_data("Open Ports", ", ".join(port_details))
         
         self.logger.data("open_ports", self.report["open_ports"])
 
@@ -260,18 +267,9 @@ class ReconEngine:
         except Exception as e:
             self.logger.warn(f"Geolocation lookup failed: {e}")
         
-        # Display comprehensive summary
+        # Display comprehensive CamXploit-style deployment analysis
         if self.console_output:
-            summary_stats = {
-                "target": self.target_ip,
-                "duration": self.report["scan_time"],
-                "open_ports": len(self.report["open_ports"]),
-                "cameras": len(self.report["camera_candidates"]),
-                "credentials": len(self.report["auth_results"]),
-                "streams": len(self.report["streams"]),
-                "vulns": len(set(self.report["vulnerabilities"]))
-            }
-            print_summary(summary_stats)
+            print_deployment_analysis(self.report)
         
         self.logger.success("Full reconnaissance completed")
 

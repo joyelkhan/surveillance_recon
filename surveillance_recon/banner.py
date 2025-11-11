@@ -165,6 +165,102 @@ def print_summary(stats: dict):
     
     print_box("Results", content, Colors.BRIGHT_GREEN)
 
+def print_deployment_analysis(report: dict):
+    """Print comprehensive CamXploit-style deployment analysis"""
+    target = report.get("target_ip", "N/A")
+    
+    print(f"\n{Colors.BRIGHT_CYAN}{'=' * 70}{Colors.RESET}")
+    print(f"{Colors.BRIGHT_WHITE}📡  DEPLOYMENT ANALYSIS: {Colors.BRIGHT_YELLOW}{target}{Colors.RESET}")
+    print(f"{Colors.BRIGHT_CYAN}{'=' * 70}{Colors.RESET}\n")
+    
+    # Geolocation
+    geo = report.get("geo", {})
+    if geo:
+        city = geo.get("city", "Unknown")
+        country = geo.get("country", "Unknown")
+        isp = geo.get("isp", "Unknown")
+        print(f"{Colors.CYAN}📍 Location:{Colors.RESET} {Colors.WHITE}{city}, {country}{Colors.RESET} | {Colors.DIM}ISP: {isp}{Colors.RESET}")
+        
+        if geo.get("lat") and geo.get("lon"):
+            maps_url = f"https://www.google.com/maps?q={geo['lat']},{geo['lon']}"
+            print(f"{Colors.CYAN}🗺️  Map:{Colors.RESET} {Colors.BLUE}{maps_url}{Colors.RESET}\n")
+    
+    # Open Ports
+    ports = report.get("open_ports", [])
+    services = report.get("services", [])
+    if ports:
+        port_details = []
+        for svc in services:
+            port = svc.get("port")
+            svc_type = svc.get("service_type", "UNKNOWN")
+            banner = svc.get("server", "")
+            if banner:
+                port_details.append(f"{port} ({svc_type} - {banner})")
+            else:
+                port_details.append(f"{port} ({svc_type})")
+        
+        print(f"{Colors.GREEN}🔓 Open Ports:{Colors.RESET} {Colors.WHITE}{', '.join(port_details)}{Colors.RESET}\n")
+    
+    # Cameras
+    cameras = report.get("camera_candidates", [])
+    if cameras:
+        print(f"{Colors.MAGENTA}🎥 Cameras:{Colors.RESET}")
+        for cam in cameras:
+            port = cam.get("port")
+            brand = cam.get("brand", "Unknown")
+            model = cam.get("model", "")
+            firmware = cam.get("firmware", "")
+            vulns = cam.get("vulnerabilities", [])
+            
+            cam_info = f"  {Colors.BRIGHT_WHITE}•{Colors.RESET} Port {Colors.BRIGHT_CYAN}{port}{Colors.RESET} | "
+            cam_info += f"{Colors.BRIGHT_GREEN}{brand}{Colors.RESET}"
+            if model:
+                cam_info += f" {Colors.WHITE}{model}{Colors.RESET}"
+            if firmware:
+                cam_info += f" {Colors.DIM}(FW: {firmware}){Colors.RESET}"
+            print(cam_info)
+            
+            if vulns:
+                for vuln in vulns:
+                    print(f"    {Colors.BRIGHT_RED}⚠️  {vuln}{Colors.RESET} {Colors.YELLOW}(RCE possible){Colors.RESET}")
+        print()
+    
+    # Authentication
+    auth_results = report.get("auth_results", {})
+    if auth_results:
+        print(f"{Colors.GREEN}🔑 Auth:{Colors.RESET}", end=" ")
+        for port, auth in auth_results.items():
+            creds = auth.get("credentials", {})
+            username = creds.get("username", "")
+            password = creds.get("password", "")
+            print(f"{Colors.BRIGHT_GREEN}{username}{Colors.RESET} / {Colors.BRIGHT_YELLOW}{password}{Colors.RESET} {Colors.DIM}(works on port {port}){Colors.RESET}")
+        print()
+    
+    # Streams
+    streams = report.get("streams", [])
+    if streams:
+        print(f"{Colors.BLUE}📺 Streams:{Colors.RESET}")
+        for stream in streams:
+            protocol = stream.get("protocol", "Unknown")
+            url = stream.get("playable_url", "")
+            is_live = stream.get("is_live", False)
+            status = f"{Colors.BRIGHT_GREEN}✅{Colors.RESET}" if is_live else f"{Colors.YELLOW}⚠️{Colors.RESET}"
+            print(f"  {Colors.BRIGHT_WHITE}•{Colors.RESET} {Colors.CYAN}{protocol}:{Colors.RESET} {Colors.WHITE}{url}{Colors.RESET} {status}")
+            
+            screenshot = stream.get("screenshot")
+            if screenshot:
+                print(f"    {Colors.DIM}📸 Screenshot: {screenshot}{Colors.RESET}")
+        print()
+    
+    # Search Links
+    print(f"{Colors.CYAN}🔍 Search:{Colors.RESET}")
+    print(f"  {Colors.BRIGHT_WHITE}•{Colors.RESET} Shodan: {Colors.BLUE}https://www.shodan.io/host/{target}{Colors.RESET}")
+    print(f"  {Colors.BRIGHT_WHITE}•{Colors.RESET} Censys: {Colors.BLUE}https://search.censys.io/hosts/{target}{Colors.RESET}")
+    
+    # Report file
+    print(f"\n{Colors.GREEN}✅ Report saved:{Colors.RESET} {Colors.WHITE}reports/{target}.json{Colors.RESET}")
+    print(f"{Colors.BRIGHT_CYAN}{'=' * 70}{Colors.RESET}\n")
+
 def clear_line():
     """Clear current line"""
     print('\r' + ' ' * 80 + '\r', end='', flush=True)

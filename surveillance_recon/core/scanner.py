@@ -27,6 +27,22 @@ CCTV_CUSTOM_PORTS = [
     5555, 5556, 9090, 9091,
 ]
 
+# Service identification mapping
+SERVICE_MAP = {
+    80: "HTTP",
+    443: "HTTPS",
+    554: "RTSP",
+    8080: "HTTP-ALT",
+    8000: "HTTP-ALT",
+    8443: "HTTPS-ALT",
+    8899: "ONVIF",
+    8093: "ONVIF-ALT",
+    8999: "ONVIF-ALT",
+    5555: "RTSP-ALT",
+    5556: "RTSP-ALT",
+    9090: "RTSP-ALT",
+}
+
 class PortScanner:
     """
     Advanced multi-protocol port scanner with service enumeration and evasion.
@@ -154,7 +170,12 @@ class PortScanner:
             return {"port": port, "state": "closed"}
 
         # Step 2: Service probing
-        service_info = {"port": port, "state": "open"}
+        service_info = {
+            "port": port,
+            "state": "open",
+            "service_type": SERVICE_MAP.get(port, "UNKNOWN"),
+            "banner": None
+        }
 
         # Heuristic-based probing
         if port in (443, 8443):
