@@ -43,6 +43,7 @@ class ReconEngine:
         self.c2_onion = c2_onion
         self.c2_https = c2_https
         self.use_tor = use_tor
+        self.console_output = console_output
         self.report = {
             "target_ip": target_ip,
             "scan_time": None,
