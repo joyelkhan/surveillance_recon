@@ -1,0 +1,55 @@
+EDUCATIONAL/RESEARCH USE ONLY LICENSE
+
+Copyright (c) 2024 SecOps Research Team
+
+TERMS AND CONDITIONS:
+
+1. PERMITTED USE
+   This software is provided EXCLUSIVELY for:
+   - Authorized penetration testing with explicit written permission
+   - Security research on systems you own or have legal authorization to test
+   - Educational purposes in controlled, isolated environments
+   - Academic research with proper ethical oversight
+
+2. PROHIBITED USE
+   You MAY NOT use this software to:
+   - Access systems without explicit written authorization
+   - Cause harm, damage, or disruption to any system or network
+   - Violate any local, state, national, or international laws
+   - Compromise privacy or security of individuals or organizations
+   - Engage in any illegal or unethical activities
+
+3. DISCLAIMER OF LIABILITY
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+4. USER RESPONSIBILITY
+   By using this software, you acknowledge that:
+   - You are solely responsible for your actions
+   - You will obtain proper authorization before testing any system
+   - You understand the legal implications of unauthorized access
+   - You will comply with all applicable laws and regulations
+   - The authors assume NO LIABILITY for misuse of this software
+
+5. LEGAL NOTICE
+   Unauthorized access to computer systems is illegal under:
+   - Computer Fraud and Abuse Act (CFAA) - United States
+   - Computer Misuse Act - United Kingdom
+   - Similar laws in most countries worldwide
+
+   Violators may face criminal prosecution, civil liability, and imprisonment.
+
+6. ETHICAL USE
+   Users are expected to follow responsible disclosure practices and ethical
+   hacking guidelines as outlined by organizations such as:
+   - OWASP (Open Web Application Security Project)
+   - EC-Council Code of Ethics
+   - (ISC)² Code of Ethics
+
+BY USING THIS SOFTWARE, YOU AGREE TO THESE TERMS AND CONDITIONS.
+IF YOU DO NOT AGREE, DO NOT USE THIS SOFTWARE.

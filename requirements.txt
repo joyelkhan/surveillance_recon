@@ -1,0 +1,18 @@
+# SurveillanceRecon - Requirements
+# Python 3.8+
+
+# Core dependencies
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+cryptography>=41.0.0
+lxml>=4.9.0
+
+# Network utilities
+urllib3>=2.0.0
+
+# Optional: For SOCKS proxy support (Tor)
+PySocks>=1.7.1
+
+# Note: VLC or FFmpeg required for stream validation (install separately)
+# - VLC: https://www.videolan.org/vlc/
+# - FFmpeg: https://ffmpeg.org/download.html

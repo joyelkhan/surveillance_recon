@@ -1,0 +1,18 @@
+# Include documentation
+include README.md
+include LICENSE
+include INSTALL.md
+include CONTRIBUTING.md
+include requirements.txt
+
+# Include config files
+recursive-include surveillance_recon/config *.py
+
+# Exclude unnecessary files
+global-exclude __pycache__
+global-exclude *.py[cod]
+global-exclude *.so
+global-exclude .DS_Store
+global-exclude *.log
+global-exclude *.tmp
+global-exclude *.cache
