@@ -7,12 +7,18 @@ import os
 import sys
 import argparse
 import threading
+import time
 from typing import List
 from surveillance_recon.core import ReconEngine
 from surveillance_recon.config.ports import PortIntelligence
 from surveillance_recon.config.creds import CredentialIntelligence
 from surveillance_recon.utils.helpers import expand_ip_range, is_valid_ip
 from surveillance_recon.utils.logger import SecureLogger
+from surveillance_recon.banner import (
+    print_banner, print_section, print_info, print_success,
+    print_warning, print_error, print_scanning, print_finding,
+    print_data, print_summary, Colors
+)
 
 class ZetaCLI:
     def __init__(self):
@@ -172,10 +178,13 @@ class ZetaCLI:
         """Main CLI entry point"""
         args = self.parser.parse_args()
 
+        # Print banner
+        if not args.quiet:
+            print_banner()
+
         # Auto-prompt if no target
         if not args.target and not args.target_file:
-            print("[SecOps Research // SurveillanceRecon v2.3 — Sovereign Recon Engine]")
-            print("Enter target IP (e.g., 203.0.113.45): ", end="")
+            print_info("Enter target IP (e.g., 192.168.1.100): ")
             target_input = input().strip()
             if not target_input:
                 print("[-] No target provided. Exiting.")

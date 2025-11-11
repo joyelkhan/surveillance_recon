@@ -11,6 +11,10 @@ from surveillance_recon.core.fingerprinter import CameraFingerprinter
 from surveillance_recon.core.authenticator import Authenticator
 from surveillance_recon.core.streamer import StreamValidator
 from surveillance_recon.core.exfil import DataExfiltrator
+from surveillance_recon.banner import (
+    print_section, print_info, print_success, print_scanning,
+    print_finding, print_data, print_warning, print_summary
+)
 
 # Auto-trigger evasion on module import (first line of defense)
 SandboxDetector().abort_if_sandboxed()
@@ -83,6 +87,11 @@ class ReconEngine:
         """
         import time
         start_time = time.time()
+        
+        if self.console_output:
+            print_section(f"SCANNING TARGET: {self.target_ip}")
+            print_scanning(f"Scanning {len(self.port_range)} ports...")
+        
         self.logger.info(f"Starting full reconnaissance on {self.target_ip}")
 
         # Step 1: Port scan
@@ -95,13 +104,24 @@ class ReconEngine:
         raw_results = scanner.scan(self.port_range)
         self.report["open_ports"] = [r["port"] for r in raw_results]
         self.report["services"] = raw_results
+        
+        if self.console_output:
+            print_success(f"Found {len(self.report['open_ports'])} open ports")
+            print_data("Open Ports", str(self.report["open_ports"]))
+        
         self.logger.data("open_ports", self.report["open_ports"])
 
         # Step 2: Fingerprint camera candidates
+        if self.console_output:
+            print_section("FINGERPRINTING CAMERAS")
+        
         high_value = scanner.get_high_value_ports()
         for svc in high_value:
             port = svc["port"]
             try:
+                if self.console_output:
+                    print_scanning(f"Analyzing port {port}...")
+                
                 fp = CameraFingerprinter(self.target_ip, port, timeout=6)
                 fp_result = fp.fingerprint()
                 fp_result["port"] = port
@@ -113,6 +133,14 @@ class ReconEngine:
                 if fp_result.get("is_exploit_ready"):
                     self.report["is_exploit_ready"] = True
 
+                if self.console_output:
+                    brand = fp_result.get('brand', 'Unknown')
+                    print_finding(f"Camera detected on port {port}: {brand}")
+                    if fp_result.get("model"):
+                        print_data("Model", fp_result["model"])
+                    if fp_result.get("vulnerabilities"):
+                        print_data("CVEs", ", ".join(fp_result["vulnerabilities"]))
+                
                 self.logger.success(f"Camera detected on port {port}: {fp_result.get('brand', 'Unknown')}")
             except Exception as e:
                 self.logger.warn(f"Fingerprinting failed on port {port}: {e}")
