@@ -61,6 +61,11 @@ class Authenticator:
 
     def _detect_login_form(self, html: str) -> Dict:
         """Parse login form fields and action URL"""
+        # Suppress XML parser warnings
+        import warnings
+        from bs4 import XMLParsedAsHTMLWarning
+        warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
+        
         soup = BeautifulSoup(html, 'html.parser')
         form = soup.find('form', {'method': re.compile(r'post', re.I)})
         if not form:

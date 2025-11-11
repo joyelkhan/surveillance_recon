@@ -110,6 +110,11 @@ class CameraFingerprinter:
             self.headers = {k.lower(): v for k, v in r.headers.items()}
             self.server = self.headers.get("server", "Unknown")
             
+            # Suppress XML parser warnings
+            import warnings
+            from bs4 import XMLParsedAsHTMLWarning
+            warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
+            
             soup = BeautifulSoup(self.html_content, 'html.parser')
             self.title = soup.title.string.strip() if soup.title else "No Title"
             return True
