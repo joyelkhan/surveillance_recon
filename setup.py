@@ -25,7 +25,7 @@ setup(
     long_description_content_type='text/markdown',
     author='SecOps Research Team',
     author_email='secops@research.local',
-    url='https://github.com/yourusername/surveillance-recon',
+    url='https://github.com/joyelkhan/surveillance_recon',
     license='Educational/Research Use Only',
     packages=find_packages(),
     include_package_data=True,
@@ -59,8 +59,8 @@ setup(
     ],
     keywords='security penetration-testing cctv iot dvr nvr surveillance reconnaissance',
     project_urls={
-        'Bug Reports': 'https://github.com/yourusername/surveillance-recon/issues',
-        'Source': 'https://github.com/yourusername/surveillance-recon',
-        'Documentation': 'https://github.com/yourusername/surveillance-recon#readme',
+        'Bug Reports': 'https://github.com/joyelkhan/surveillance_recon/issues',
+        'Source': 'https://github.com/joyelkhan/surveillance_recon',
+        'Documentation': 'https://github.com/joyelkhan/surveillance_recon#readme',
     },
 )
